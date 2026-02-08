@@ -1,6 +1,6 @@
-# Meraki Gift Store - Adaptación CloudCannon + Netlify
+# Meraki Gift Store - Adaptación CloudCannon + Vercel
 
-Este proyecto ha sido adaptado para funcionar como un sitio estático en Netlify, gestionable a través del CMS CloudCannon.
+Este proyecto ha sido adaptado para funcionar como un sitio estático en Vercel, gestionable a través del CMS CloudCannon.
 
 ## Características Nuevas
 
@@ -40,17 +40,18 @@ Este comando ejecuta secuencialmente:
 ### 1. GitHub
 Sube este repositorio a GitHub. Asegúrate de incluir la carpeta `content` y excluir `public/data` (ya está en .gitignore).
 
-### 2. Netlify
-1. Conecta tu repositorio de GitHub a Netlify.
-2. Configuración de Build:
-   - **Build command**: `npm run build`
-   - **Publish directory**: `dist`
-3. Desplegar.
+### 2. Vercel (Recomendado)
+1. Conecta tu repositorio de GitHub a Vercel.
+2. Vercel detectará automáticamente que es un proyecto Vite.
+3. El comando de build será `npm run build` y el directorio de salida `dist`.
+4. El archivo `vercel.json` incluido asegurará que las rutas de la app funcionen correctamente.
+5. Desplegar.
 
 ### 3. CloudCannon
 1. Crea una cuenta en CloudCannon y conecta tu repositorio.
 2. CloudCannon detectará automáticamente el archivo `cloudcannon.config.yml`.
-3. CloudCannon sincronizará los cambios en `content/` con tu repositorio, lo que disparará un nuevo build en Netlify.
+3. CloudCannon sincronizará los cambios en `content/` con tu repositorio en GitHub.
+4. Vercel detectará el nuevo commit desde GitHub y volverá a desplegar el sitio automáticamente.
 
 ## Notas para el Desarrollador
 
