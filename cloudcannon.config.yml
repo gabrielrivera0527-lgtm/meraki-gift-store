@@ -1,0 +1,51 @@
+collections_config:
+  products:
+    path: content/products
+    name: Productos
+    singular_name: Producto
+    url: /catalogo/[slug]/
+    output: true
+    sort:
+      key: name
+      order: asc
+    schemas:
+      default:
+        path: schemas/product.md // optional, defining structure in UI
+    _inputs:
+      image:
+        type: image
+        comment: "Imagen principal del producto. Tamaño recomendado 800x800px."
+      price:
+        type: number
+        step: 0.01
+      category:
+        type: select
+        options:
+          values:
+            - Tazas
+            - Camisetas
+            - Gorras
+            - Marcos de fotos
+            - Otros
+      isBestSeller:
+        type: boolean
+        label: "¿Es Best Seller?"
+  testimonials:
+    path: content/testimonials
+    name: Testimonios
+    singular_name: Testimonio
+    _inputs:
+      initials:
+        comment: "Iniciales para mostrar si no hay avatar (ej. 'MA')"
+
+paths:
+  uploads: public/uploads
+
+# Editor options
+_options:
+  content:
+    image:
+      width: 800
+      height: 800
+      resize_style: contain
+      mime_type: image/jpeg

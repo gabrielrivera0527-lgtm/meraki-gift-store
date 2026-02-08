@@ -1,0 +1,15 @@
+
+import { Product, Testimonial } from './types';
+
+// Data is now loaded dynamically from public/data/db.json via DataContext
+export const PRODUCTS: Product[] = []; // Compatibilidad temporal si algo falla, pero idealmente se elimina
+export const TESTIMONIALS: Testimonial[] = [];
+
+
+export const INSTAGRAM_FEED = [
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuD7LWP6TdHh5XRPfevU8n7C6OsOI4YQ2p8usqRP-YD7C0IQg_n11Gy49qLr_ruhsWHAkOZnZV20ApkfUbULOAjMCl1PE7yxbxdk-UVM7HyxUCDm-ZMxcG5gWoVMVHoljW3yve10FXz0VM45s5g-zVsBPpF3ly23QmlP0avqMRTcPwF-Ek9GCmyxFUyiRrVIPwxFKW6_HVKpO2Fk8jtmozHMQb3Cus1mLvoxnUhWN8apUfIamA3PGZ9KJnbTUwLnGmItWvm2-TI8-xQ',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuComPuh4yky0ECAjmFAOwQMfP7KdGWa1epIVzMp-LRMnxNya0stM29SRNHQJzSEnBncfokepRLLWy40NEznOj0nCF4WPVO4UqsM9vdsK_4MBcLtEBnE7eOuSMnta_KNrjKIffNUjXMIJ8WdCBJg6FOXBPcVX1A8Bm_N4AVqZHbkmizQs58vPF8Sdkitph9f1IIqb0CSRWWyMd3nIkVIQhWoafjQuVxoU9fPvoyLoEPUtFerZHvaXAoeY_mXbw_m3rjY1y0FdVHUFpg',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuCxiJz-JKvhgV4U6oz2ZcuPdwpHywOmghGlJoN8SHg1C3LcJf5GQyBvK-JgneRb-7QuK9fFAWNRFJvnIt-69SXYa34VVGHIdouPBwhYdp6EQx6Lq0dnymO3TwpY6taY8cy8D_gwlAGHUOQ6KY-xKBfk4g5f-bq-q4SCJXKodMbLz7zUMqUqv9BMZrig7RhpFUY-pXcbcb4NR4aZ3fmDM4onDh8GWMSjPARQvLMgdHbD_oDE4ZDyylzONOSdJp9OWLy6fSLYJQ6LyuY',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuBAhdmawYCcj9IjNX3J-P-si8j_drGMuUuqn81nTuEi63ZjCzVKALfMo8IWHgL_95EgWF1ZLjrIslFo4lr9EmWvha0R96C4htfUit5_n_gWVtmBX0dolFVrGd1Uc42A05HOUUoDJZ5IOu2RslhJhSsyEqsKatc-WGstytfWowjq64BbBFEFZbYFnqxAMHflJkkWj48mqQ6CKw4hPNZT0gsWTnYWCQ5oDoGwLNMPiZY3EBJ9h7zPmMS3HFywTdg2KjOwfUL2QrFCx88',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuD38w8ytE38jeZz3142s8YzgYH5eZgkm0Avc8NRKoszQb_BBTjuQTjG_1rXsmDP-9k-H17gQbef41RFQywTc7SkYIFnoimf36kbxJ18yOOmU59xmtbJcTYKuE1N4-ZnZZqsSYdXTTXxpWCNNKstLLXZ-CXIQTlDuZErxM-VuBgNpNepMhjz-hTvKYYGD8oF3hUuB-GjtjMiFgF1OeoVX7fTJHpwTJDJmiu7ItmC4w6OPPcXvhOTDo3CNFrVI3Q_nZAagueQUhMllvI'
+];
