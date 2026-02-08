@@ -2,11 +2,13 @@
 import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { DataContext } from '../context/DataContext';
+import { useCart } from '../context/CartContext';
 
 const CATEGORIES = ['Todos', 'Tazas', 'Camisetas', 'Gorras', 'Marcos de fotos', 'Otros'];
 
 const Catalog: React.FC = () => {
   const { products, loading } = useContext(DataContext);
+  const { addItem } = useCart();
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -24,6 +26,18 @@ const Catalog: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
+  const handleAddToCart = (product: any) => {
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.image,
+      isCustom: false
+    });
+    // Optional: Add toast notification here
+  };
+
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
       <div className="mb-10">
@@ -31,7 +45,7 @@ const Catalog: React.FC = () => {
           Catálogo de Productos
         </h1>
         <p className="text-slate-500 dark:text-slate-400 max-w-2xl text-lg">
-          Personaliza tus momentos más especiales. Elige un producto y dale tu toque personal con nuestras sublimaciones de alta calidad.
+          Elige un producto de nuestro catálogo listo para regalar, o personalízalo a tu gusto.
         </p>
       </div>
 
@@ -42,8 +56,8 @@ const Catalog: React.FC = () => {
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-6 py-2.5 rounded-full font-semibold transition-all ${activeCategory === cat
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                  : 'bg-white dark:bg-card-dark text-slate-600 dark:text-slate-300 hover:bg-pink-50 dark:hover:bg-zinc-800 border border-slate-100 dark:border-zinc-800'
+                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                : 'bg-white dark:bg-card-dark text-slate-600 dark:text-slate-300 hover:bg-pink-50 dark:hover:bg-zinc-800 border border-slate-100 dark:border-zinc-800'
                 }`}
             >
               {cat}
@@ -57,7 +71,7 @@ const Catalog: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 rounded-full border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white focus:ring-primary focus:border-primary"
-            placeholder="Buscar regalo perfecto..."
+            placeholder="Buscar..."
           />
         </div>
       </div>
@@ -72,7 +86,11 @@ const Catalog: React.FC = () => {
                   <span className="material-symbols-rounded text-[14px] mr-1">star</span> Best Seller
                 </div>
               )}
-              <button className="absolute top-3 right-3 p-2 bg-white/90 dark:bg-black/40 backdrop-blur-sm rounded-full text-slate-600 dark:text-white hover:text-primary transition-colors">
+              <button
+                onClick={() => handleAddToCart(product)}
+                className="absolute top-3 right-3 p-2 bg-white/90 dark:bg-black/40 backdrop-blur-sm rounded-full text-slate-600 dark:text-white hover:text-primary transition-colors transform active:scale-90"
+                title="Añadir a lista de deseos"
+              >
                 <span className="material-symbols-rounded">favorite</span>
               </button>
             </div>
@@ -81,10 +99,19 @@ const Catalog: React.FC = () => {
               <h3 className="font-heading text-lg font-bold text-slate-800 dark:text-white mb-2 line-clamp-2">{product.name}</h3>
               <div className="mt-auto">
                 <p className="text-2xl font-bold text-slate-900 dark:text-white mb-4">${product.price.toFixed(2)}</p>
-                <Link to={`/personalizar/${product.id}`} className="w-full bg-primary hover:bg-pink-700 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center space-x-2">
-                  <span className="material-symbols-rounded">edit</span>
-                  <span>Personalizar</span>
-                </Link>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="flex-1 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-800 dark:text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center"
+                    title="Agregar al carrito"
+                  >
+                    <span className="material-symbols-rounded">add_shopping_cart</span>
+                  </button>
+                  <Link to={`/personalizar/${product.id}`} className="flex-[3] bg-primary hover:bg-pink-700 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center space-x-2">
+                    <span className="material-symbols-rounded">edit</span>
+                    <span>Personalizar</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

@@ -2,5 +2,6 @@
     "id": "taza-magica",
     "name": "Taza Mágica",
     "price": 8.50,
-    "baseImage": "https://lh3.googleusercontent.com/aida-public/AB6AXuBY9EzChhsv_5mljIfy95Z_30y7EWRM3GmRHjP5VVjVTPwwpswc38Uk99prAAEuSVzAwldAzL-z0sDkSAcaj6HRT5UUtqiMLpLrUjuAlb9lopcndXvKwAqTE_m4vC8ps4VY_CWZuIEqu2ss-XAUJWST7cvAxwSAos8f7uSTbPGw6i23BWLUHLFMcwqoV3oa0rqbvyyxAlClhrCaZSfXuER58q-LOKwMxnDgadotaL-WkhwVmSNOUhXGhA4OoQ1pj1Zrx_PjZIWget0"
+    "baseImage": "https://lh3.googleusercontent.com/aida-public/AB6AXuBY9EzChhsv_5mljIfy95Z_30y7EWRM3GmRHjP5VVjVTPwwpswc38Uk99prAAEuSVzAwldAzL-z0sDkSAcaj6HRT5UUtqiMLpLrUjuAlb9lopcndXvKwAqTE_m4vC8ps4VY_CWZuIEqu2ss-XAUJWST7cvAxwSAos8f7uSTbPGw6i23BWLUHLFMcwqoV3oa0rqbvyyxAlClhrCaZSfXuER58q-LOKwMxnDgadotaL-WkhwVmSNOUhXGhA4OoQ1pj1Zrx_PjZIWget0",
+    "isMagicMug": true
 }

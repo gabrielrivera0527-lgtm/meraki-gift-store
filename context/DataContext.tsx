@@ -6,8 +6,15 @@ export interface BaseProduct {
     id: string;
     name: string;
     price: number;
-    baseImage: string;
+    baseImage: string; // Default/Front view
     maskImage?: string;
+    views?: {
+        id: string;
+        name: string; // "Frente", "Espalda", etc.
+        image: string;
+        mask?: string;
+    }[];
+    isMagicMug?: boolean; // Flag special feature
 }
 
 interface DataContextType {

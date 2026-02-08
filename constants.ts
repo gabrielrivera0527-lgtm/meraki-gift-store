@@ -1,8 +1,7 @@
-
 import { Product, Testimonial } from './types';
 
 // Data is now loaded dynamically from public/data/db.json via DataContext
-export const PRODUCTS: Product[] = []; // Compatibilidad temporal si algo falla, pero idealmente se elimina
+export const PRODUCTS: Product[] = [];
 export const TESTIMONIALS: Testimonial[] = [];
 
 

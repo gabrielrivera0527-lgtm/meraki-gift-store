@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DataContext } from '../context/DataContext';
+import { DataContext, BaseProduct } from '../context/DataContext';
 import { useCart } from '../context/CartContext';
 
 const Customize: React.FC = () => {
@@ -19,6 +19,12 @@ const Customize: React.FC = () => {
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
+  // View state (Front/Back)
+  const [currentViewId, setCurrentViewId] = useState<string>('default');
+
+  // Magic Mug state
+  const [isHot, setIsHot] = useState(true); // Default to showing design (Hot)
+
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
@@ -29,6 +35,35 @@ const Customize: React.FC = () => {
   }, [baseProducts, selectedBaseId]);
 
   const selectedBaseProduct = baseProducts.find(p => p.id === selectedBaseId);
+
+  // Reset view when product changes
+  useEffect(() => {
+    if (selectedBaseProduct?.views && selectedBaseProduct.views.length > 0) {
+      setCurrentViewId(selectedBaseProduct.views[0].id);
+    } else {
+      setCurrentViewId('default');
+    }
+    // Reset magic mug state
+    setIsHot(true);
+  }, [selectedBaseId, selectedBaseProduct]);
+
+  const getCurrentImage = () => {
+    if (!selectedBaseProduct) return '';
+    if (currentViewId !== 'default' && selectedBaseProduct.views) {
+      const view = selectedBaseProduct.views.find(v => v.id === currentViewId);
+      return view ? view.image : selectedBaseProduct.baseImage;
+    }
+    return selectedBaseProduct.baseImage;
+  };
+
+  const getCurrentMask = () => {
+    if (!selectedBaseProduct) return undefined;
+    if (currentViewId !== 'default' && selectedBaseProduct.views) {
+      const view = selectedBaseProduct.views.find(v => v.id === currentViewId);
+      return view ? view.mask : selectedBaseProduct.maskImage;
+    }
+    return selectedBaseProduct.maskImage;
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -66,16 +101,23 @@ const Customize: React.FC = () => {
   const handleAddToCart = () => {
     if (!selectedBaseProduct) return;
 
+    // Determine view name
+    let viewName = 'Estándar';
+    if (selectedBaseProduct.views) {
+      const view = selectedBaseProduct.views.find(v => v.id === currentViewId);
+      if (view) viewName = view.name;
+    }
+
     addItem({
       productId: selectedBaseProduct.id,
       name: selectedBaseProduct.name,
       price: selectedBaseProduct.price,
       quantity: 1,
-      image: selectedBaseProduct.baseImage,
+      image: selectedBaseProduct.baseImage, // Thumbnail always default for now
       isCustom: true,
       customDetails: {
         baseProductId: selectedBaseProduct.id,
-        uploadedImageName: imageName || 'Diseño Personalizado',
+        uploadedImageName: `${imageName || 'Diseño'} (${viewName})`,
         designConfig: { scale, x: position.x, y: position.y, rotation }
       }
     });
@@ -96,18 +138,18 @@ const Customize: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
 
-          {/* Controls - Left/Top on mobile */}
+          {/* Controls */}
           <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
 
             {/* Base Product Selector */}
             <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm">
-              <h3 className="font-bold mb-4 dark:text-white">1. Elige tu producto base</h3>
+              <h3 className="font-bold mb-4 dark:text-white">1. Producto</h3>
               <div className="flex flex-wrap gap-2">
                 {baseProducts.map(product => (
                   <button
                     key={product.id}
                     onClick={() => setSelectedBaseId(product.id)}
-                    className={`px-4 py-2 rounded-lg text-sm transition-all ${selectedBaseId === product.id
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-all ${selectedBaseId === product.id
                         ? 'bg-primary text-white shadow-md'
                         : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                       }`}
@@ -118,9 +160,57 @@ const Customize: React.FC = () => {
               </div>
             </div>
 
+            {/* View Selector (if views exist) */}
+            {selectedBaseProduct?.views && selectedBaseProduct.views.length > 0 && (
+              <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm">
+                <h3 className="font-bold mb-4 dark:text-white">Vista</h3>
+                <div className="flex gap-2">
+                  {selectedBaseProduct.views.map(view => (
+                    <button
+                      key={view.id}
+                      onClick={() => setCurrentViewId(view.id)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${currentViewId === view.id
+                          ? 'bg-slate-800 text-white dark:bg-white dark:text-black'
+                          : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300'
+                        }`}
+                    >
+                      {view.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Magic Mug Toggle */}
+            {selectedBaseProduct?.isMagicMug && (
+              <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border-2 border-primary/20">
+                <h3 className="font-bold mb-4 dark:text-white flex items-center gap-2">
+                  <span className="material-icons-round text-primary">science</span>
+                  Efecto Mágico
+                </h3>
+                <div className="flex bg-slate-100 dark:bg-zinc-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setIsHot(false)}
+                    className={`flex-1 py-2 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-all ${!isHot ? 'bg-black text-white shadow' : 'text-slate-500'}`}
+                  >
+                    <span className="material-icons-round text-blue-400">ac_unit</span> Fría
+                  </button>
+                  <button
+                    onClick={() => setIsHot(true)}
+                    className={`flex-1 py-2 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-all ${isHot ? 'bg-white text-primary shadow' : 'text-slate-500'}`}
+                  >
+                    <span className="material-icons-round text-orange-500">whatshot</span> Caliente
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-2 text-center">
+                  {!isHot ? "La taza es negra cuando está fría, ocultando tu diseño." : "¡Al verter líquido caliente, tu diseño aparece!"}
+                </p>
+              </div>
+            )}
+
             {/* Upload & Transform */}
             <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm">
-              <h3 className="font-bold mb-4 dark:text-white">2. Sube tu imagen</h3>
+              <h3 className="font-bold mb-4 dark:text-white">2. Tu Diseño</h3>
               <div className="mb-6">
                 <input
                   type="file"
@@ -133,12 +223,10 @@ const Customize: React.FC = () => {
                     file:bg-pink-50 file:text-primary
                     hover:file:bg-pink-100"
                 />
-                <p className="text-xs text-slate-400 mt-2">Recomendado: PNG con fondo transparente.</p>
               </div>
 
               {uploadedImage && (
                 <div className="space-y-4">
-                  <h3 className="font-bold dark:text-white">3. Ajusta tu diseño</h3>
                   <div>
                     <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Tamaño</label>
                     <input
@@ -162,7 +250,7 @@ const Customize: React.FC = () => {
             {/* Price & Action */}
             <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm">
               <div className="flex justify-between items-center mb-6">
-                <span className="text-lg font-bold dark:text-white">Total estimado:</span>
+                <span className="text-lg font-bold dark:text-white">Total:</span>
                 <span className="text-3xl font-display font-bold text-primary">
                   ${selectedBaseProduct?.price.toFixed(2)}
                 </span>
@@ -179,10 +267,10 @@ const Customize: React.FC = () => {
 
           </div>
 
-          {/* Preview Area - Right/Center */}
+          {/* Preview Area */}
           <div className="lg:col-span-2 order-1 lg:order-2">
-            <div className="sticky top-24">
-              <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-xl overflow-hidden aspect-square relative border-2 border-dashed border-slate-200 dark:border-zinc-700 flex items-center justify-center">
+            <div className={`sticky top-24 transition-all duration-500 ${selectedBaseProduct?.isMagicMug && !isHot ? 'grayscale brightness-75' : ''}`}>
+              <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-xl overflow-hidden aspect-square relative border-2 border-dashed border-slate-200 dark:border-zinc-700 flex items-center justify-center group">
 
                 {!selectedBaseProduct ? (
                   <p className="text-slate-400">Selecciona un producto base</p>
@@ -195,18 +283,19 @@ const Customize: React.FC = () => {
                   >
                     {/* Base Product Image */}
                     <img
-                      src={selectedBaseProduct.baseImage}
+                      src={getCurrentImage()}
                       alt={selectedBaseProduct.name}
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-10"
                     />
 
-                    {/* Custom Image Layer */}
+                    {/* Custom Image Layer with MixBlendMode */}
                     {uploadedImage && (
                       <div
-                        className="absolute z-20 cursor-move"
+                        className={`absolute z-20 cursor-move transition-opacity duration-700 ${selectedBaseProduct.isMagicMug && !isHot ? 'opacity-0' : 'opacity-90'}`}
                         style={{
                           transform: `translate(${position.x}px, ${position.y}px) rotate(${rotation}deg) scale(${scale})`,
-                          touchAction: 'none'
+                          touchAction: 'none',
+                          mixBlendMode: 'multiply' // Key for realism
                         }}
                         onMouseDown={handleMouseDown}
                       >
@@ -220,10 +309,15 @@ const Customize: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Mask Overlay (Optional - e.g. for mug handle covering design) */}
-                    {selectedBaseProduct.maskImage && (
+                    {/* Magic Mug Overlay (Black when Cold) */}
+                    {selectedBaseProduct.isMagicMug && !isHot && (
+                      <div className="absolute inset-0 bg-black/90 z-25 pointer-events-none transition-opacity duration-700 mix-blend-multiply"></div>
+                    )}
+
+                    {/* Mask Overlay */}
+                    {getCurrentMask() && (
                       <img
-                        src={selectedBaseProduct.maskImage}
+                        src={getCurrentMask()}
                         alt="Mask"
                         className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-30"
                       />
@@ -240,7 +334,9 @@ const Customize: React.FC = () => {
                 )}
               </div>
               <p className="text-center text-slate-400 text-sm mt-4">
-                * La previsualización es aproximada. Ajustaremos manualmente el diseño para garantizar la mejor calidad de impresión.
+                * Arrastra, rota y ajusta el tamaño de tu diseño.
+                {selectedBaseProduct?.isMagicMug && <br />}
+                {selectedBaseProduct?.isMagicMug && <span className="text-primary font-bold">¡Prueba el interruptor Frío/Caliente para ver la magia!</span>}
               </p>
             </div>
           </div>
