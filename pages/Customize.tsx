@@ -1,8 +1,10 @@
-
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { DataContext, BaseProduct } from '../context/DataContext';
+import React, { useState, useRef, useEffect, Suspense, useContext } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { DataContext, BaseProduct } from '../context/DataContext';
+
+// Lazy load 3D component to avoid huge bundle
+const Product3D = React.lazy(() => import('../components/canvas/Product3D'));
 
 const Customize: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -311,12 +313,24 @@ const Customize: React.FC = () => {
 
           {/* Preview Area */}
           <div className="lg:col-span-2 order-1 lg:order-2">
-            <div className={`sticky top-24 transition-all duration-500 ${selectedBaseProduct?.isMagicMug && !isHot ? 'grayscale brightness-75' : ''}`}>
+            <div className={`sticky top-24 transition-all duration-500`}>
               <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-xl overflow-hidden aspect-square relative border-2 border-dashed border-slate-200 dark:border-zinc-700 flex items-center justify-center group">
 
                 {!selectedBaseProduct ? (
                   <p className="text-slate-400">Selecciona un producto base</p>
+                ) : (selectedBaseProduct.name.toLowerCase().includes('taza') || selectedBaseProduct.name.toLowerCase().includes('mug')) ? (
+                  /* 3D View for Mugs */
+                  <Suspense fallback={<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>}>
+                    <Product3D
+                      productType="taza"
+                      image={uploadedImage || undefined}
+                      color={selectedColor}
+                      isMagic={selectedBaseProduct.isMagicMug}
+                      isHot={isHot}
+                    />
+                  </Suspense>
                 ) : (
+                  /* 2D View for Others (Shirts, Caps) */
                   <div
                     className="relative w-full h-full flex items-center justify-center overflow-hidden"
                     onMouseMove={handleMouseMove}
