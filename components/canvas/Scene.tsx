@@ -11,7 +11,7 @@ const Scene: React.FC<SceneProps> = ({ children }) => {
         <Canvas
             shadows
             camera={{ position: [0, 0, 4], fov: 45 }}
-            style={{ background: '#f5f5f5', borderRadius: '1.5rem', width: '100%', height: '100%' }}
+            style={{ background: '#e0e0e0', borderRadius: '1.5rem', width: '100%', height: '100%' }} // Darker gray for contrast
         >
             <ambientLight intensity={0.5} />
             <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} shadow-mapSize={2048} castShadow />

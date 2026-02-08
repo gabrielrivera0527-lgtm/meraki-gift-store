@@ -1,6 +1,9 @@
 import React, { Suspense } from 'react';
 import Scene from './Scene';
 import Mug from './Mug';
+import Bottle from './Bottle';
+import Cap from './Cap';
+import TShirt3D from './TShirt3D';
 
 interface Product3DProps {
     productType: string;
@@ -19,20 +22,31 @@ const Product3D: React.FC<Product3DProps> = ({
 }) => {
 
     const renderModel = () => {
-        switch (productType.toLowerCase()) {
-            case 'taza':
-            case 'taza mágica':
-            case 'mug':
-                return <Mug image={image} color={color} isMagic={isMagic} isHot={isHot} />;
-            default:
-                // Fallback for not-yet-implemented 3D models (show a placeholder or generic shape)
-                return (
-                    <mesh>
-                        <boxGeometry args={[1, 1, 1]} />
-                        <meshStandardMaterial color={color || 'hotpink'} />
-                    </mesh>
-                );
+        const type = productType.toLowerCase();
+
+        if (type.includes('taza') || type.includes('mug')) {
+            return <Mug image={image} color={color} isMagic={isMagic} isHot={isHot} />;
         }
+
+        if (type.includes('botella') || type.includes('bottle')) {
+            return <Bottle image={image} color={color} />;
+        }
+
+        if (type.includes('gorra') || type.includes('cap')) {
+            return <Cap image={image} color={color} />;
+        }
+
+        if (type.includes('camis') || type.includes('shirt') || type.includes('playera')) {
+            return <TShirt3D image={image} color={color} />;
+        }
+
+        // Default Fallback
+        return (
+            <mesh>
+                <boxGeometry args={[1, 1, 1]} />
+                <meshStandardMaterial color={color || 'hotpink'} />
+            </mesh>
+        );
     };
 
     return (

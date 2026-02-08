@@ -318,92 +318,17 @@ const Customize: React.FC = () => {
 
                 {!selectedBaseProduct ? (
                   <p className="text-slate-400">Selecciona un producto base</p>
-                ) : (selectedBaseProduct.name.toLowerCase().includes('taza') || selectedBaseProduct.name.toLowerCase().includes('mug')) ? (
-                  /* 3D View for Mugs */
+                ) : (
+                  /* 3D View for ALL Products (Procedural Fallback) */
                   <Suspense fallback={<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>}>
                     <Product3D
-                      productType="taza"
+                      productType={selectedBaseProduct.name}
                       image={uploadedImage || undefined}
                       color={selectedColor}
                       isMagic={selectedBaseProduct.isMagicMug}
                       isHot={isHot}
                     />
                   </Suspense>
-                ) : (
-                  /* 2D View for Others (Shirts, Caps) */
-                  <div
-                    className="relative w-full h-full flex items-center justify-center overflow-hidden"
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                    style={{ backgroundColor: isColorable ? selectedColor : 'transparent' }} // Tint background for transparent PNGs
-                  >
-                    {/* Layer 1: Base Product Image */}
-                    {/* If colorable, we use mix-blend-mode: multiply on the IMAGE so the background color shows through */}
-                    <img
-                      src={getCurrentImage()}
-                      alt={selectedBaseProduct.name}
-                      className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-10"
-                      style={{ mixBlendMode: isColorable ? 'multiply' : 'normal' }}
-                    />
-
-                    {/* Layer 2: Custom Design */}
-                    {uploadedImage && (
-                      <div
-                        className={`absolute z-20 cursor-move transition-opacity duration-700 ${selectedBaseProduct.isMagicMug && !isHot ? 'opacity-0' : 'opacity-90'}`}
-                        style={{
-                          transform: `translate(${position.x}px, ${position.y}px) rotate(${rotation}deg) scale(${scale})`,
-                          touchAction: 'none',
-                          mixBlendMode: 'multiply' // Blend with base/color
-                        }}
-                        onMouseDown={handleMouseDown}
-                      >
-                        <img
-                          src={uploadedImage}
-                          alt="Custom Design"
-                          className="max-w-[200px] pointer-events-none select-none"
-                        />
-                        {/* Visual helper border when dragging */}
-                        {isDragging && <div className="absolute inset-0 border-2 border-primary border-dashed rounded-lg opacity-50"></div>}
-                      </div>
-                    )}
-
-                    {/* Layer 3: Overlay (Shadows/Highlights) */}
-                    {/* This layer brings back the texture ON TOP of the design */}
-                    {(getCurrentOverlay() || (isColorable && getCurrentImage())) && (
-                      <img
-                        src={getCurrentOverlay() || getCurrentImage()} // Use specific overlay or fallback to base image
-                        alt="Overlay"
-                        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-30"
-                        style={{
-                          mixBlendMode: 'hard-light', // Good for re-introducing shadows/highlights from a grayscale or white image
-                          opacity: 0.4 // Adjust strength
-                        }}
-                      />
-                    )}
-
-                    {/* Magic Mug Overlay */}
-                    {selectedBaseProduct.isMagicMug && !isHot && (
-                      <div className="absolute inset-0 bg-black/95 z-40 pointer-events-none transition-opacity duration-700 mix-blend-normal"></div>
-                    )}
-
-                    {/* Mask Overlay (if needed for clipping) */}
-                    {getCurrentMask() && (
-                      <img
-                        src={getCurrentMask()}
-                        alt="Mask"
-                        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-50"
-                      />
-                    )}
-
-                    {!uploadedImage && (
-                      <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
-                        <div className="bg-black/5 backdrop-blur-sm px-6 py-3 rounded-full text-slate-500 font-medium border border-white/20">
-                          Sube tu imagen para previsualizar
-                        </div>
-                      </div>
-                    )}
-                  </div>
                 )}
               </div>
               <p className="text-center text-slate-400 text-sm mt-4">
