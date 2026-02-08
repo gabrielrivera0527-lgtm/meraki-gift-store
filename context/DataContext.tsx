@@ -8,11 +8,14 @@ export interface BaseProduct {
     price: number;
     baseImage: string; // Default/Front view
     maskImage?: string;
+    overlayImage?: string; // Texture/Shadow layer (multiply/hard-light)
+    availableColors?: string[]; // Hex codes for tinting
     views?: {
         id: string;
         name: string; // "Frente", "Espalda", etc.
         image: string;
         mask?: string;
+        overlay?: string;
     }[];
     isMagicMug?: boolean; // Flag special feature
 }

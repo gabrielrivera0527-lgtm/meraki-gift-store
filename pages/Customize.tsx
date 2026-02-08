@@ -36,6 +36,9 @@ const Customize: React.FC = () => {
 
   const selectedBaseProduct = baseProducts.find(p => p.id === selectedBaseId);
 
+  // Color state
+  const [selectedColor, setSelectedColor] = useState<string>('#FFFFFF');
+
   // Reset view when product changes
   useEffect(() => {
     if (selectedBaseProduct?.views && selectedBaseProduct.views.length > 0) {
@@ -47,6 +50,14 @@ const Customize: React.FC = () => {
     setIsHot(true);
   }, [selectedBaseId, selectedBaseProduct]);
 
+  useEffect(() => {
+    if (selectedBaseProduct?.availableColors && selectedBaseProduct.availableColors.length > 0) {
+      setSelectedColor(selectedBaseProduct.availableColors[0]);
+    } else {
+      setSelectedColor('#FFFFFF');
+    }
+  }, [selectedBaseId, selectedBaseProduct]);
+
   const getCurrentImage = () => {
     if (!selectedBaseProduct) return '';
     if (currentViewId !== 'default' && selectedBaseProduct.views) {
@@ -54,6 +65,15 @@ const Customize: React.FC = () => {
       return view ? view.image : selectedBaseProduct.baseImage;
     }
     return selectedBaseProduct.baseImage;
+  };
+
+  const getCurrentOverlay = () => {
+    if (!selectedBaseProduct) return undefined;
+    if (currentViewId !== 'default' && selectedBaseProduct.views) {
+      const view = selectedBaseProduct.views.find(v => v.id === currentViewId);
+      return view?.overlay || selectedBaseProduct.overlayImage; // Fallback to main overlay
+    }
+    return selectedBaseProduct.overlayImage;
   };
 
   const getCurrentMask = () => {
@@ -117,7 +137,7 @@ const Customize: React.FC = () => {
       isCustom: true,
       customDetails: {
         baseProductId: selectedBaseProduct.id,
-        uploadedImageName: `${imageName || 'Diseño'} (${viewName})`,
+        uploadedImageName: `${imageName || 'Diseño'} (${viewName}, Color: ${selectedColor})`,
         designConfig: { scale, x: position.x, y: position.y, rotation }
       }
     });
@@ -128,6 +148,10 @@ const Customize: React.FC = () => {
   if (loading) {
     return <div className="min-h-screen pt-24 flex justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
   }
+
+  // Helper to determine if we should treat the image as a maskable layer for coloring
+  // For simplicity, we assume if availableColors exists, we tint the base image
+  const isColorable = selectedBaseProduct?.availableColors && selectedBaseProduct.availableColors.length > 0;
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-background-light dark:bg-background-dark transition-colors">
@@ -150,8 +174,8 @@ const Customize: React.FC = () => {
                     key={product.id}
                     onClick={() => setSelectedBaseId(product.id)}
                     className={`px-3 py-1.5 rounded-lg text-sm transition-all ${selectedBaseId === product.id
-                        ? 'bg-primary text-white shadow-md'
-                        : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                      ? 'bg-primary text-white shadow-md'
+                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                       }`}
                   >
                     {product.name}
@@ -170,12 +194,30 @@ const Customize: React.FC = () => {
                       key={view.id}
                       onClick={() => setCurrentViewId(view.id)}
                       className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${currentViewId === view.id
-                          ? 'bg-slate-800 text-white dark:bg-white dark:text-black'
-                          : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300'
+                        ? 'bg-slate-800 text-white dark:bg-white dark:text-black'
+                        : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300'
                         }`}
                     >
                       {view.name}
                     </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Color Selector */}
+            {isColorable && (
+              <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm">
+                <h3 className="font-bold mb-4 dark:text-white">Color Base</h3>
+                <div className="flex flex-wrap gap-3">
+                  {selectedBaseProduct?.availableColors?.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-10 h-10 rounded-full border-2 transition-transform hover:scale-110 ${selectedColor === color ? 'border-primary ring-2 ring-primary/30' : 'border-slate-200 dark:border-zinc-700'}`}
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
                   ))}
                 </div>
               </div>
@@ -280,22 +322,25 @@ const Customize: React.FC = () => {
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
+                    style={{ backgroundColor: isColorable ? selectedColor : 'transparent' }} // Tint background for transparent PNGs
                   >
-                    {/* Base Product Image */}
+                    {/* Layer 1: Base Product Image */}
+                    {/* If colorable, we use mix-blend-mode: multiply on the IMAGE so the background color shows through */}
                     <img
                       src={getCurrentImage()}
                       alt={selectedBaseProduct.name}
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-10"
+                      style={{ mixBlendMode: isColorable ? 'multiply' : 'normal' }}
                     />
 
-                    {/* Custom Image Layer with MixBlendMode */}
+                    {/* Layer 2: Custom Design */}
                     {uploadedImage && (
                       <div
                         className={`absolute z-20 cursor-move transition-opacity duration-700 ${selectedBaseProduct.isMagicMug && !isHot ? 'opacity-0' : 'opacity-90'}`}
                         style={{
                           transform: `translate(${position.x}px, ${position.y}px) rotate(${rotation}deg) scale(${scale})`,
                           touchAction: 'none',
-                          mixBlendMode: 'multiply' // Key for realism
+                          mixBlendMode: 'multiply' // Blend with base/color
                         }}
                         onMouseDown={handleMouseDown}
                       >
@@ -309,22 +354,36 @@ const Customize: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Magic Mug Overlay (Black when Cold) */}
-                    {selectedBaseProduct.isMagicMug && !isHot && (
-                      <div className="absolute inset-0 bg-black/90 z-25 pointer-events-none transition-opacity duration-700 mix-blend-multiply"></div>
+                    {/* Layer 3: Overlay (Shadows/Highlights) */}
+                    {/* This layer brings back the texture ON TOP of the design */}
+                    {(getCurrentOverlay() || (isColorable && getCurrentImage())) && (
+                      <img
+                        src={getCurrentOverlay() || getCurrentImage()} // Use specific overlay or fallback to base image
+                        alt="Overlay"
+                        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-30"
+                        style={{
+                          mixBlendMode: 'hard-light', // Good for re-introducing shadows/highlights from a grayscale or white image
+                          opacity: 0.4 // Adjust strength
+                        }}
+                      />
                     )}
 
-                    {/* Mask Overlay */}
+                    {/* Magic Mug Overlay */}
+                    {selectedBaseProduct.isMagicMug && !isHot && (
+                      <div className="absolute inset-0 bg-black/95 z-40 pointer-events-none transition-opacity duration-700 mix-blend-normal"></div>
+                    )}
+
+                    {/* Mask Overlay (if needed for clipping) */}
                     {getCurrentMask() && (
                       <img
                         src={getCurrentMask()}
                         alt="Mask"
-                        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-30"
+                        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-50"
                       />
                     )}
 
                     {!uploadedImage && (
-                      <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+                      <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
                         <div className="bg-black/5 backdrop-blur-sm px-6 py-3 rounded-full text-slate-500 font-medium border border-white/20">
                           Sube tu imagen para previsualizar
                         </div>
