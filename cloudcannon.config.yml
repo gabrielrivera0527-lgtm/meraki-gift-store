@@ -37,6 +37,20 @@ collections_config:
     _inputs:
       initials:
         comment: "Iniciales para mostrar si no hay avatar (ej. 'MA')"
+  base_products:
+    path: content/base-products
+    name: Productos Personalizables (Base)
+    singular_name: Producto Base
+    _inputs:
+      baseImage:
+        type: image
+        comment: "Imagen del producto en blanco (sin diseño)"
+      maskImage:
+        type: image
+        comment: "Imagen de máscara opcional para recortar el diseño (PNG con transparencia)"
+      price:
+        type: number
+        step: 0.01
 
 paths:
   uploads: public/uploads

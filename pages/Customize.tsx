@@ -1,157 +1,253 @@
 
-import React, { useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { DataContext } from '../context/DataContext';
+import { useCart } from '../context/CartContext';
 
 const Customize: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { products, loading } = useContext(DataContext);
+  const navigate = useNavigate();
+  const { baseProducts, loading } = useContext(DataContext);
+  const { addItem } = useCart();
+
+  const [selectedBaseId, setSelectedBaseId] = useState<string>(id === 'new' ? '' : id || '');
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [imageName, setImageName] = useState<string>('');
+
+  // Transformation state
+  const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (baseProducts.length > 0 && (!selectedBaseId || !baseProducts.find(p => p.id === selectedBaseId))) {
+      setSelectedBaseId(baseProducts[0].id);
+    }
+  }, [baseProducts, selectedBaseId]);
+
+  const selectedBaseProduct = baseProducts.find(p => p.id === selectedBaseId);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageName(file.name);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setUploadedImage(ev.target?.result as string);
+        // Reset transformations
+        setScale(1);
+        setRotation(0);
+        setPosition({ x: 0, y: 0 });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedBaseProduct) return;
+
+    addItem({
+      productId: selectedBaseProduct.id,
+      name: selectedBaseProduct.name,
+      price: selectedBaseProduct.price,
+      quantity: 1,
+      image: selectedBaseProduct.baseImage,
+      isCustom: true,
+      customDetails: {
+        baseProductId: selectedBaseProduct.id,
+        uploadedImageName: imageName || 'Diseño Personalizado',
+        designConfig: { scale, x: position.x, y: position.y, rotation }
+      }
+    });
+
+    navigate('/carrito');
+  };
 
   if (loading) {
-    return <div className="text-center py-20">Cargando personalizador...</div>;
-  }
-
-  const product = products.find(p => p.id === id) || products[0];
-
-  if (!product) {
-    return <div className="text-center py-20">Producto no encontrado</div>;
+    return <div className="min-h-screen pt-24 flex justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8 md:py-12 animate-in fade-in zoom-in duration-500">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="space-y-6">
-          <div className="relative aspect-square rounded-[2rem] bg-white dark:bg-zinc-900 border-2 border-rose-100 dark:border-zinc-800 overflow-hidden flex items-center justify-center shadow-2xl shadow-rose-200/20 dark:shadow-none">
-            <div className="absolute top-4 left-4 bg-white/90 dark:bg-zinc-800/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 border border-rose-100 dark:border-zinc-700">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              Vista 3D en tiempo real
-            </div>
-            <div className="relative w-3/4 h-3/4 flex items-center justify-center">
-              <img
-                alt={product.name}
-                className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal rounded-xl opacity-90"
-                src={product.image}
-              />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-32 h-32 border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-white/20 backdrop-blur-[1px]">
-                  <span className="material-icons-round text-primary/40 text-4xl">add_photo_alternate</span>
-                </div>
+    <div className="min-h-screen pt-24 pb-12 bg-background-light dark:bg-background-dark transition-colors">
+      <div className="container mx-auto px-4">
+        <h1 className="font-heading text-3xl md:text-4xl font-bold text-center mb-8 text-primary">
+          Crea tu Diseño Único
+        </h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+          {/* Controls - Left/Top on mobile */}
+          <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
+
+            {/* Base Product Selector */}
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm">
+              <h3 className="font-bold mb-4 dark:text-white">1. Elige tu producto base</h3>
+              <div className="flex flex-wrap gap-2">
+                {baseProducts.map(product => (
+                  <button
+                    key={product.id}
+                    onClick={() => setSelectedBaseId(product.id)}
+                    className={`px-4 py-2 rounded-lg text-sm transition-all ${selectedBaseId === product.id
+                        ? 'bg-primary text-white shadow-md'
+                        : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                      }`}
+                  >
+                    {product.name}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
-              <button className="p-3 bg-white dark:bg-zinc-800 rounded-full shadow-lg border border-rose-50 dark:border-zinc-700 hover:scale-110 transition-transform">
-                <span className="material-icons-round">3d_rotation</span>
-              </button>
-              <button className="p-3 bg-white dark:bg-zinc-800 rounded-full shadow-lg border border-rose-50 dark:border-zinc-700 hover:scale-110 transition-transform">
-                <span className="material-icons-round">zoom_in</span>
-              </button>
-              <button className="p-3 bg-white dark:bg-zinc-800 rounded-full shadow-lg border border-rose-50 dark:border-zinc-700 hover:scale-110 transition-transform">
-                <span className="material-icons-round">cameraswitch</span>
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center justify-between px-2">
-            <h2 className="text-xl font-display font-bold">{product.name}</h2>
-            <span className="text-2xl font-bold text-primary">${product.price.toFixed(2)}</span>
-          </div>
-        </div>
 
-        <div className="flex flex-col gap-8">
-          <div>
-            <h1 className="text-3xl font-display font-bold mb-2">Personaliza tu regalo</h1>
-            <p className="text-slate-500 dark:text-slate-400">Sube tu diseño en formato PNG para obtener los mejores resultados de sublimación.</p>
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-semibold mb-2">Paso 1: Sube tu imagen</label>
-            <div className="border-2 border-dashed border-rose-200 dark:border-zinc-700 rounded-[2rem] p-8 text-center hover:border-primary transition-colors cursor-pointer bg-white/50 dark:bg-zinc-800/30">
-              <input type="file" className="hidden" id="file-upload" />
-              <label htmlFor="file-upload" className="flex flex-col items-center gap-3 cursor-pointer">
-                <div className="w-16 h-16 bg-rose-50 dark:bg-rose-950/30 rounded-full flex items-center justify-center text-primary">
-                  <span className="material-icons-round text-3xl">cloud_upload</span>
-                </div>
-                <div>
-                  <p className="font-medium">Haz clic o arrastra tu archivo aquí</p>
-                  <p className="text-xs text-slate-400 mt-1">PNG, JPG (Máx. 10MB)</p>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <div className="space-y-6 bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-rose-100 dark:border-zinc-800">
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <span className="material-icons-round text-primary text-sm">open_with</span>
-                  Posición y Tamaño
-                </label>
-                <button className="text-primary text-xs font-semibold hover:underline">Resetear</button>
+            {/* Upload & Transform */}
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm">
+              <h3 className="font-bold mb-4 dark:text-white">2. Sube tu imagen</h3>
+              <div className="mb-6">
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  onChange={handleImageUpload}
+                  className="block w-full text-sm text-slate-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-pink-50 file:text-primary
+                    hover:file:bg-pink-100"
+                />
+                <p className="text-xs text-slate-400 mt-2">Recomendado: PNG con fondo transparente.</p>
               </div>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between text-xs text-slate-500 mb-2">
-                    <span>Escala</span>
-                    <span>100%</span>
+
+              {uploadedImage && (
+                <div className="space-y-4">
+                  <h3 className="font-bold dark:text-white">3. Ajusta tu diseño</h3>
+                  <div>
+                    <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Tamaño</label>
+                    <input
+                      type="range" min="0.5" max="2" step="0.1"
+                      value={scale} onChange={(e) => setScale(parseFloat(e.target.value))}
+                      className="w-full accent-primary"
+                    />
                   </div>
-                  <input type="range" className="w-full h-2 bg-rose-100 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <div>
+                    <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Rotación</label>
+                    <input
+                      type="range" min="-180" max="180" step="5"
+                      value={rotation} onChange={(e) => setRotation(parseFloat(e.target.value))}
+                      className="w-full accent-primary"
+                    />
+                  </div>
                 </div>
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-zinc-800 p-3 rounded-2xl w-fit">
-                    <div></div>
-                    <button className="p-2 hover:bg-white dark:hover:bg-zinc-700 rounded-lg shadow-sm transition-all"><span className="material-icons-round">keyboard_arrow_up</span></button>
-                    <div></div>
-                    <button className="p-2 hover:bg-white dark:hover:bg-zinc-700 rounded-lg shadow-sm transition-all"><span className="material-icons-round">keyboard_arrow_left</span></button>
-                    <button className="p-2 bg-primary text-white rounded-lg shadow-sm"><span className="material-icons-round">center_focus_strong</span></button>
-                    <button className="p-2 hover:bg-white dark:hover:bg-zinc-700 rounded-lg shadow-sm transition-all"><span className="material-icons-round">keyboard_arrow_right</span></button>
-                    <div></div>
-                    <button className="p-2 hover:bg-white dark:hover:bg-zinc-700 rounded-lg shadow-sm transition-all"><span className="material-icons-round">keyboard_arrow_down</span></button>
-                    <div></div>
-                  </div>
-                  <div className="flex-1 w-full space-y-4">
-                    <div>
-                      <div className="flex justify-between text-xs text-slate-500 mb-2">
-                        <span>Rotación</span>
-                        <span>0°</span>
+              )}
+            </div>
+
+            {/* Price & Action */}
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-lg font-bold dark:text-white">Total estimado:</span>
+                <span className="text-3xl font-display font-bold text-primary">
+                  ${selectedBaseProduct?.price.toFixed(2)}
+                </span>
+              </div>
+              <button
+                onClick={handleAddToCart}
+                disabled={!selectedBaseProduct}
+                className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-pink-200 dark:shadow-none hover:bg-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <span className="material-icons-round">add_shopping_cart</span>
+                Agregar al Carrito
+              </button>
+            </div>
+
+          </div>
+
+          {/* Preview Area - Right/Center */}
+          <div className="lg:col-span-2 order-1 lg:order-2">
+            <div className="sticky top-24">
+              <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-xl overflow-hidden aspect-square relative border-2 border-dashed border-slate-200 dark:border-zinc-700 flex items-center justify-center">
+
+                {!selectedBaseProduct ? (
+                  <p className="text-slate-400">Selecciona un producto base</p>
+                ) : (
+                  <div
+                    className="relative w-full h-full flex items-center justify-center overflow-hidden"
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                  >
+                    {/* Base Product Image */}
+                    <img
+                      src={selectedBaseProduct.baseImage}
+                      alt={selectedBaseProduct.name}
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-10"
+                    />
+
+                    {/* Custom Image Layer */}
+                    {uploadedImage && (
+                      <div
+                        className="absolute z-20 cursor-move"
+                        style={{
+                          transform: `translate(${position.x}px, ${position.y}px) rotate(${rotation}deg) scale(${scale})`,
+                          touchAction: 'none'
+                        }}
+                        onMouseDown={handleMouseDown}
+                      >
+                        <img
+                          src={uploadedImage}
+                          alt="Custom Design"
+                          className="max-w-[200px] pointer-events-none select-none"
+                        />
+                        {/* Visual helper border when dragging */}
+                        {isDragging && <div className="absolute inset-0 border-2 border-primary border-dashed rounded-lg opacity-50"></div>}
                       </div>
-                      <input type="range" className="w-full h-2 bg-rose-100 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary" />
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="flex-1 py-2 px-3 bg-slate-50 dark:bg-zinc-800 rounded-xl text-xs font-medium flex items-center justify-center gap-2">
-                        <span className="material-icons-round text-sm">flip</span> Voltear
-                      </button>
-                      <button className="flex-1 py-2 px-3 bg-slate-50 dark:bg-zinc-800 rounded-xl text-xs font-medium flex items-center justify-center gap-2">
-                        <span className="material-icons-round text-sm">layers</span> Capas
-                      </button>
-                    </div>
+                    )}
+
+                    {/* Mask Overlay (Optional - e.g. for mug handle covering design) */}
+                    {selectedBaseProduct.maskImage && (
+                      <img
+                        src={selectedBaseProduct.maskImage}
+                        alt="Mask"
+                        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-30"
+                      />
+                    )}
+
+                    {!uploadedImage && (
+                      <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+                        <div className="bg-black/5 backdrop-blur-sm px-6 py-3 rounded-full text-slate-500 font-medium border border-white/20">
+                          Sube tu imagen para previsualizar
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
+              <p className="text-center text-slate-400 text-sm mt-4">
+                * La previsualización es aproximada. Ajustaremos manualmente el diseño para garantizar la mejor calidad de impresión.
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Link to="/carrito" className="flex-[2] bg-primary hover:bg-rose-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-rose-200 dark:shadow-none transition-all flex items-center justify-center gap-3">
-              <span className="material-icons-round">shopping_cart</span>
-              Añadir al carrito
-            </Link>
-            <button className="group relative flex-1 bg-white dark:bg-zinc-800 border-2 border-rose-100 dark:border-zinc-700 hover:border-primary dark:hover:border-primary font-bold py-4 px-6 rounded-2xl transition-all flex items-center justify-center gap-2">
-              <span className="material-icons-round text-primary">help_outline</span>
-              Ayuda
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-64 p-4 bg-slate-900 text-white text-xs font-normal rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-xl">
-                <p className="mb-2 font-bold">Ayuda para principiantes</p>
-                Usa archivos .png con fondo transparente para que el color del producto se vea natural. ¡Evita poner texto muy cerca de los bordes!
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900"></div>
-              </div>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-2xl">
-            <span className="material-icons-round text-blue-500">info</span>
-            <p className="text-xs text-blue-700 dark:text-blue-300">Producción estimada: 24-48 horas. Envío gratis en pedidos superiores a $50.</p>
-          </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 };
 

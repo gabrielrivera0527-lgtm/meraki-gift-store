@@ -19,27 +19,30 @@ const ScrollToTop = () => {
 };
 
 import { DataProvider } from './context/DataContext';
+import { CartProvider } from './context/CartContext';
 
 const App: React.FC = () => {
   return (
     <DataProvider>
-      <Router>
-        <ScrollToTop />
-        <div className="min-h-screen flex flex-col font-sans">
-          <Navbar />
-          <div className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/catalogo" element={<Catalog />} />
-              <Route path="/personalizar/:id" element={<Customize />} />
-              <Route path="/carrito" element={<Cart />} />
-              <Route path="/como-ordenar" element={<HowToOrder />} />
-              <Route path="/galeria" element={<Gallery />} />
-            </Routes>
+      <CartProvider>
+        <Router>
+          <ScrollToTop />
+          <div className="min-h-screen flex flex-col font-sans">
+            <Navbar />
+            <div className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/catalogo" element={<Catalog />} />
+                <Route path="/personalizar/:id" element={<Customize />} />
+                <Route path="/carrito" element={<Cart />} />
+                <Route path="/como-ordenar" element={<HowToOrder />} />
+                <Route path="/galeria" element={<Gallery />} />
+              </Routes>
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
-      </Router>
+        </Router>
+      </CartProvider>
     </DataProvider>
   );
 };

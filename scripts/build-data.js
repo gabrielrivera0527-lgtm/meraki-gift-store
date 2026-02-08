@@ -43,10 +43,12 @@ function readCollection(collectionName) {
 
 const products = readCollection('products');
 const testimonials = readCollection('testimonials');
+const baseProducts = readCollection('base-products');
 
 const db = {
   products,
   testimonials,
+  baseProducts,
   generatedAt: new Date().toISOString()
 };
 
