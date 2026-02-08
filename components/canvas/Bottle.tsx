@@ -23,8 +23,9 @@ const Bottle: React.FC<BottleProps> = ({
                 <cylinderGeometry args={[0.65, 0.65, 2.0, 64]} />
                 <meshStandardMaterial
                     color={color}
-                    roughness={0.2}
-                    metalness={0.6} // Aluminum look
+                    roughness={0.25} // Satin finish, not mirror
+                    metalness={0.8} // High metalness
+                    envMapIntensity={1.5}
                 />
             </mesh>
 

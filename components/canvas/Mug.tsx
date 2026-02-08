@@ -35,8 +35,9 @@ const Mug: React.FC<MugProps> = ({
                 <cylinderGeometry args={[0.7, 0.7, 1.5, 64]} />
                 <meshStandardMaterial
                     color={baseColor}
-                    roughness={0.15}
-                    metalness={0.1}
+                    roughness={0.1} // Glossy ceramic
+                    metalness={0.0}
+                    envMapIntensity={1.2}
                 />
             </mesh>
 

@@ -18,18 +18,21 @@ const TShirt3D: React.FC<TShirtProps> = ({
 
     return (
         <group dispose={null} position={[0, -1, 0]}>
-            {/* Torso */}
-            <group scale={[1, 0.5, 1]}> {/* Flattened Z to look like torso */}
-                <mesh castShadow receiveShadow position={[0, 1, 0]}>
-                    <cylinderGeometry args={[0.8, 0.7, 2.2, 32]} />
-                    <meshStandardMaterial color={color} roughness={0.8} />
-                </mesh>
-            </group>
+            {/* Torso - Using Box with rounded segments instead of Cylinder for better fit */}
+            <mesh castShadow receiveShadow position={[0, 1, 0]} scale={[1, 0.5, 1]}>
+                <boxGeometry args={[1.6, 2.2, 0.8, 8, 8, 8]} /> {/* More segments for lighting */}
+                <meshStandardMaterial
+                    color={color}
+                    roughness={0.9} // Texture of fabric
+                    metalness={0.05}
+                    flatShading={false}
+                />
+            </mesh>
 
-            {/* Shoulders / Sleeves */}
+            {/* Sleeves */}
             <mesh castShadow receiveShadow position={[0, 1.8, 0]} rotation={[0, 0, Math.PI / 2]}>
-                <capsuleGeometry args={[0.25, 2.4, 4, 16]} />
-                <meshStandardMaterial color={color} roughness={0.8} />
+                <capsuleGeometry args={[0.26, 2.6, 8, 16]} />
+                <meshStandardMaterial color={color} roughness={0.9} metalness={0.05} />
             </mesh>
 
             {/* Neck */}

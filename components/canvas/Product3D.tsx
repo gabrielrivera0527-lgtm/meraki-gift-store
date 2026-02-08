@@ -4,6 +4,7 @@ import Mug from './Mug';
 import Bottle from './Bottle';
 import Cap from './Cap';
 import TShirt3D from './TShirt3D';
+import ModelLoader from './ModelLoader';
 
 interface Product3DProps {
     productType: string;
@@ -11,6 +12,7 @@ interface Product3DProps {
     color?: string;
     isMagic?: boolean;
     isHot?: boolean;
+    modelUrl?: string; // New: Path to .glb file
 }
 
 const Product3D: React.FC<Product3DProps> = ({
@@ -18,10 +20,16 @@ const Product3D: React.FC<Product3DProps> = ({
     image,
     color,
     isMagic,
-    isHot
+    isHot,
+    modelUrl
 }) => {
 
     const renderModel = () => {
+        // Priority: Custom GLB Model > Procedural Model
+        if (modelUrl) {
+            return <ModelLoader modelPath={modelUrl} image={image} />;
+        }
+
         const type = productType.toLowerCase();
 
         if (type.includes('taza') || type.includes('mug')) {
